@@ -37,6 +37,9 @@
 
 #import <Carbon/Carbon.h>
 
+// keyboard layout
+static NSString *kbdLayout;
+
 @interface AWTView()
 @property (retain) CDropTarget *_dropTarget;
 @property (retain) CDragSource *_dragSource;
@@ -1010,7 +1013,7 @@ static jclass jc_CInputMethod = NULL;
     [self abandonInput];
 }
 
-- (void)keyboardInputSourceChanged:(NSNotification *)notification
++ (void)keyboardInputSourceChanged:(NSNotification *)notification
 {
 #ifdef IM_DEBUG
     NSLog(@"keyboardInputSourceChangeNotification received");
@@ -1327,7 +1330,7 @@ static jclass jc_CInputMethod = NULL;
     CHECK_EXCEPTION();
 
 #ifdef IM_DEBUG
-    fprintf(stderr, "characterIndexForPoint returning %ld\n", index);
+    fprintf(stderr, "characterIndexForPoint returning %d\n", index);
 #endif // IM_DEBUG
 
     if (index == -1) {
