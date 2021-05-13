@@ -195,10 +195,18 @@ public class CgroupV1Subsystem implements CgroupSubsystem, CgroupV1Metrics {
                 CgroupV1MemorySubSystemController memorySubSystem = (CgroupV1MemorySubSystemController)controller;
                 boolean isHierarchial = getHierarchical(memorySubSystem);
                 memorySubSystem.setHierarchical(isHierarchial);
+                boolean isSwapEnabled = getSwapEnabled(memorySubSystem);
+                memorySubSystem.setSwapEnabled(isSwapEnabled);
             }
             subsystem.setActiveSubSystems();
         }
     }
+
+
+    private static boolean getSwapEnabled(CgroupV1MemorySubSystemController controller) {
+         long retval = getLongValue(controller, "memory.memsw.limit_in_bytes");
+         return retval > 0;
+     }
 
 
     private static boolean getHierarchical(CgroupV1MemorySubSystemController controller) {
@@ -431,10 +439,16 @@ public class CgroupV1Subsystem implements CgroupSubsystem, CgroupV1Metrics {
     }
 
     public long getMemoryAndSwapFailCount() {
+        if (!memory.isSwapEnabled()) {
+            return getMemoryFailCount();
+        }
         return getLongValue(memory, "memory.memsw.failcnt");
     }
 
     public long getMemoryAndSwapLimit() {
+        if (!memory.isSwapEnabled()) {
+            return getMemoryLimit();
+        }
         long retval = getLongValue(memory, "memory.memsw.limit_in_bytes");
         if (retval > CgroupV1SubsystemController.UNLIMITED_MIN) {
             if (memory.isHierarchical()) {
@@ -450,10 +464,16 @@ public class CgroupV1Subsystem implements CgroupSubsystem, CgroupV1Metrics {
     }
 
     public long getMemoryAndSwapMaxUsage() {
+        if (!memory.isSwapEnabled()) {
+            return getMemoryMaxUsage();
+        }
         return getLongValue(memory, "memory.memsw.max_usage_in_bytes");
     }
 
     public long getMemoryAndSwapUsage() {
+        if (!memory.isSwapEnabled()) {
+            return getMemoryUsage();
+        }
         return getLongValue(memory, "memory.memsw.usage_in_bytes");
     }
 
