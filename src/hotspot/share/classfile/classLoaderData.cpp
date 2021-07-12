@@ -793,6 +793,7 @@ void ClassLoaderData::init_handle_locked(OopHandle& dest, Handle h) {
   if (dest.resolve() != NULL) {
     return;
   } else {
+    record_modified_oops();
     dest = _handles.add(h());
   }
 }
