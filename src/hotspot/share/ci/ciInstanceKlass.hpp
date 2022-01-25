@@ -162,6 +162,10 @@ public:
     }
     return _has_subklass == subklass_true;
   }
+
+  jint                   layout_helper_size_in_bytes()  {
+    return Klass::layout_helper_size_in_bytes(layout_helper());
+  }
   jint                   size_helper()  {
     return (Klass::layout_helper_size_in_bytes(layout_helper())
             >> LogHeapWordSize);
