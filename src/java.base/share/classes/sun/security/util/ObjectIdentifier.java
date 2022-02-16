@@ -408,7 +408,7 @@ public final class ObjectIdentifier implements Serializable {
             if ((encoding[i] & 0x80) == 0) {
                 // one section [fromPos..i]
                 if (i - fromPos + 1 > 4) {
-                    BigInteger big = new BigInteger(pack(encoding,
+                    BigInteger big = new BigInteger(1, pack(encoding,
                             fromPos, i-fromPos+1, 7, 8));
                     if (fromPos == 0) {
                         result[which++] = 2;
@@ -477,7 +477,7 @@ public final class ObjectIdentifier implements Serializable {
                         sb.append('.');
                     }
                     if (i - fromPos + 1 > 4) { // maybe big integer
-                        BigInteger big = new BigInteger(
+                        BigInteger big = new BigInteger(1,
                                 pack(encoding, fromPos, i-fromPos+1, 7, 8));
                         if (fromPos == 0) {
                             // first section encoded with more than 4 bytes,
@@ -731,6 +731,7 @@ public final class ObjectIdentifier implements Serializable {
             throw new IOException("ObjectIdentifier encoded length was " +
                     "negative: " + oidLength);
         }
+
         if (oidLength > MAXIMUM_OID_SIZE) {
             throw new IOException(
                     "ObjectIdentifier encoded length exceeds " +
