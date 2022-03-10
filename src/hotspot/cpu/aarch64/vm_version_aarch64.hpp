@@ -26,6 +26,7 @@
 #ifndef CPU_AARCH64_VM_VERSION_AARCH64_HPP
 #define CPU_AARCH64_VM_VERSION_AARCH64_HPP
 
+#include "spin_wait_aarch64.hpp"
 #include "runtime/abstract_vm_version.hpp"
 #include "runtime/globals_extension.hpp"
 #include "utilities/sizes.hpp"
@@ -46,6 +47,9 @@ protected:
     uint32_t ctr_el0;
   };
   static PsrInfo _psr_info;
+
+  static SpinWait _spin_wait;
+
   static void get_processor_features();
 
 public:
@@ -125,6 +129,10 @@ public:
     return (1 << ((_psr_info.ctr_el0 >> 16) & 0x0f)) * 4;
   }
   static bool supports_fast_class_init_checks() { return true; }
+
+  static const SpinWait& spin_wait_desc() { return _spin_wait; }
+
+  static bool supports_on_spin_wait() { return _spin_wait.inst() != SpinWait::NONE; }
 };
 
 #endif // CPU_AARCH64_VM_VERSION_AARCH64_HPP

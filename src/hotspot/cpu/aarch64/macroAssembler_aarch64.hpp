@@ -1368,6 +1368,9 @@ public:
 
   void cache_wb(Address line);
   void cache_wbsync(bool is_pre);
+
+  // Code for java.lang.Thread::onSpinWait() intrinsic.
+  void spin_wait();
 };
 
 #ifdef ASSERT

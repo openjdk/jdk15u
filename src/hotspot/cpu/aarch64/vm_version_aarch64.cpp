@@ -74,6 +74,26 @@ VM_Version::PsrInfo VM_Version::_psr_info   = { 0, };
 static BufferBlob* stub_blob;
 static const int stub_size = 550;
 
+SpinWait VM_Version::_spin_wait;
+
+static SpinWait get_spin_wait_desc() {
+  if (strcmp(OnSpinWaitInst, "nop") == 0) {
+    return SpinWait(SpinWait::NOP, OnSpinWaitInstCount);
+  } else if (strcmp(OnSpinWaitInst, "isb") == 0) {
+    return SpinWait(SpinWait::ISB, OnSpinWaitInstCount);
+  } else if (strcmp(OnSpinWaitInst, "yield") == 0) {
+    return SpinWait(SpinWait::YIELD, OnSpinWaitInstCount);
+  } else if (strcmp(OnSpinWaitInst, "none") != 0) {
+    vm_exit_during_initialization("The options for OnSpinWaitInst are nop, isb, yield, and none", OnSpinWaitInst);
+  }
+
+  if (!FLAG_IS_DEFAULT(OnSpinWaitInstCount) && OnSpinWaitInstCount > 0) {
+    vm_exit_during_initialization("OnSpinWaitInstCount cannot be used for OnSpinWaitInst 'none'");
+  }
+
+  return SpinWait();
+}
+
 extern "C" {
   typedef void (*getPsrInfo_stub_t)(void*);
 }
@@ -477,6 +497,8 @@ void VM_Version::initialize() {
                                    g.generate_getPsrInfo());
 
   get_processor_features();
+
+  _spin_wait = get_spin_wait_desc();
 
   UNSUPPORTED_OPTION(CriticalJNINatives);
 }
