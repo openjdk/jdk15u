@@ -252,6 +252,10 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
      * registers the lambda proxy class for including into the CDS archive.
      */
     private Class<?> spinInnerClass() throws LambdaConversionException {
+        // CDS does not handle useImplMethodHandle
+        if (useImplMethodHandle)
+            return generateInnerClass();
+
         // include lambda proxy class in CDS archive at dump time
         if (LambdaProxyClassArchive.isDumpArchive()) {
             Class<?> innerClass = generateInnerClass();
