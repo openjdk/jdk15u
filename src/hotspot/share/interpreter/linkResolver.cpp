@@ -1726,7 +1726,7 @@ void LinkResolver::resolve_handle_call(CallInfo& result,
     if (MethodHandles::is_signature_polymorphic_intrinsic(iid)) {
       // Check if method can be accessed by the referring class.
       // MH.linkTo* invocations are not rewritten to invokehandle.
-      assert(iid == vmIntrinsicID::_invokeBasic, "%s", vmIntrinsics::name_at(iid));
+      assert(iid == vmIntrinsics::_invokeBasic, "%s", vmIntrinsics::name_at(iid));
 
       Klass* current_klass = link_info.current_klass();
       assert(current_klass != NULL , "current_klass should not be null");
