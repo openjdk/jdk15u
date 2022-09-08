@@ -275,6 +275,9 @@ public class DerInputStream {
             throw new IOException("DER input not an octet string");
 
         int length = getDefiniteLength(buffer);
+        if (length > buffer.available())
+            throw new IOException("short read of an octet string");
+
         byte[] retval = new byte[length];
         if ((length != 0) && (buffer.read(retval) != length))
             throw new IOException("Short read of DER octet string");
@@ -499,6 +502,10 @@ public class DerInputStream {
                                   stringName + " string");
 
         int length = getDefiniteLength(buffer);
+        if (length > buffer.available())
+            throw new IOException("short read of " +
+                                  stringName + " string");
+
         byte[] retval = new byte[length];
         if ((length != 0) && (buffer.read(retval) != length))
             throw new IOException("Short read of DER " +
