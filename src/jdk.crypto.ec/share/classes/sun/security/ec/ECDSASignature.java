@@ -485,6 +485,9 @@ abstract class ECDSASignature extends SignatureSpi {
     @Override
     protected boolean engineVerify(byte[] signature) throws SignatureException {
 
+        ECPoint w = publicKey.getW();
+        ECParameterSpec params = publicKey.getParams();
+
         byte[] sig;
         if (p1363Format) {
             sig = signature;
@@ -493,11 +496,25 @@ abstract class ECDSASignature extends SignatureSpi {
         }
 
         byte[] digest = getDigestValue();
-        Optional<Boolean> verifyOpt
-                = verifySignedDigestAvailable(publicKey, sig, digest);
 
-        if (verifyOpt.isPresent()) {
-            return verifyOpt.get();
+        Optional<ECDSAOperations> ops = ECDSAOperations.forParameters(params);
+
+        if (ops.isPresent()) {
+
+            // Partial public key validation
+            try {
+                ECUtil.validatePublicKey(w, params);
+            } catch (InvalidKeyException e) {
+                return false;
+            }
+            // Full public key validation, only necessary when h != 1.
+            if (params.getCofactor() != 1) {
+                if (!ops.get().getEcOperations().checkOrder(w)) {
+                    return false;
+                }
+            }
+            return verifySignedDigestImpl(ops.get(), digest, publicKey, sig);
+
         } else {
             if (SunEC.isNativeDisabled()) {
                 NamedCurve nc = CurveDB.lookup(publicKey.getParams());
@@ -508,38 +525,21 @@ abstract class ECDSASignature extends SignatureSpi {
                                                 : "unknown")));
             }
 
-            byte[] w;
-            ECParameterSpec params = publicKey.getParams();
             // DER OID
             byte[] encodedParams = ECUtil.encodeECParameterSpec(null, params);
 
+            byte[] encodedW;
             if (publicKey instanceof ECPublicKeyImpl) {
-                w = ((ECPublicKeyImpl) publicKey).getEncodedPublicValue();
+                encodedW = ((ECPublicKeyImpl) publicKey).getEncodedPublicValue();
             } else { // instanceof ECPublicKey
-                w = ECUtil.encodePoint(publicKey.getW(), params.getCurve());
+                encodedW = ECUtil.encodePoint(w, params.getCurve());
             }
 
             try {
-                return verifySignedDigest(sig, digest, w, encodedParams);
+                return verifySignedDigest(sig, digest, encodedW, encodedParams);
             } catch (GeneralSecurityException e) {
                 throw new SignatureException("Could not verify signature", e);
             }
-        }
-    }
-
-    private Optional<Boolean> verifySignedDigestAvailable(
-            ECPublicKey publicKey, byte[] sig, byte[] digestValue) {
-
-        ECParameterSpec params = publicKey.getParams();
-
-        Optional<ECDSAOperations> opsOpt =
-                ECDSAOperations.forParameters(params);
-        if (opsOpt.isEmpty()) {
-            return Optional.empty();
-        } else {
-            boolean result = verifySignedDigestImpl(opsOpt.get(), digestValue,
-                    publicKey, sig);
-            return Optional.of(result);
         }
     }
 
